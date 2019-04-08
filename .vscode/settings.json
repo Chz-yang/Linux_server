@@ -1,0 +1,64 @@
+{
+  "code-runner.executorMap": {
+    "c": "cd $dir && gcc $fileName -o $fileNameWithoutExt.out && $dir$fileNameWithoutExt.out",
+    // 既不从文档输入，又不输出到文档
+    "cpp": "cd $dir && g++ $fileName -Wall -static-libgcc -g -std=c++17 -o a.out && $dir/a.out",
+    // 从文档输入
+    // "cpp": "cd $dir && g++ $fileName -Wall -static-libgcc -g -std=c++17 -o a.out && $dir/a.out < input",
+    // 既从文档输入，又输出到文档
+    //"cpp": "cd $dir && g++ $fileName -Wall -static-libgcc -g -std=c++17 -o a.out && $dir/a.out < input > output",
+    "python": "python"
+  },
+  "files.associations": {
+    "ostream": "cpp",
+    "algorithm": "cpp",
+    "iostream": "cpp",
+    "cstring": "cpp",
+    "iosfwd": "cpp",
+    "stdio.h": "c",
+    "mpi.h": "c",
+    "array": "c",
+    "initializer_list": "c",
+    "utility": "c",
+    "istream": "c",
+    "vector": "cpp",
+    "tuple": "cpp",
+    "strstream": "cpp",
+    "*.tcc": "cpp",
+    "cctype": "cpp",
+    "clocale": "cpp",
+    "cmath": "cpp",
+    "cstdarg": "cpp",
+    "cstdint": "cpp",
+    "cstdio": "cpp",
+    "cstdlib": "cpp",
+    "cwchar": "cpp",
+    "cwctype": "cpp",
+    "deque": "cpp",
+    "unordered_map": "cpp",
+    "exception": "cpp",
+    "fstream": "cpp",
+    "functional": "cpp",
+    "limits": "cpp",
+    "new": "cpp",
+    "numeric": "cpp",
+    "sstream": "cpp",
+    "stdexcept": "cpp",
+    "streambuf": "cpp",
+    "system_error": "cpp",
+    "cinttypes": "cpp",
+    "type_traits": "cpp",
+    "typeinfo": "cpp",
+    "map": "cpp",
+    "cstddef": "cpp"
+  },
+  "astyle.additional_languages": [
+    ".cpp"
+  ],
+  "astyle.astylerc": "${workspaceRoot}/.vscode/astylerc",
+  "cSpell.words": [
+    "connfd",
+    "gobang"
+  ],
+  
+}

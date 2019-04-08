@@ -1,0 +1,22 @@
+    "--style=google" #google风格
+    "--indent-switches"
+    "--indent-preprocessor"
+    "--indent=spaces=4" #缩进使用4个空格
+    "-p" #操作符两边插入空格
+#    "-U" #移除括号两边不必要的空格
+    "--align-pointer=type" #char* a 型的指针声明风格
+    "--align-reference=name" #char &a 型的引用声明风格
+    "--max-instatement-indent=#" #函数的参数多行对齐
+    "--pad-header" #Insert space padding between a header (e.g. 'if', 'for', 'while'...)
+                   #and the following paren.
+    "--break-after-logical" #函数参数逻辑运算符断开
+    "--remove-brackets" #一行代码去花括号
+
+
+#    "-D" #括号左边（内侧）添加空格
+#    "-d" #括号右边（外侧）增加空格
+   "--break-blocks" #无关联的代码块之间增加空行
+#    "--delete-empty-lines" #删除空行
+#    "-n"
+#    "--index=modifiers"
+    "--add-brackets" #if语句就算一行语句也要加花括号
