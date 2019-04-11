@@ -50,7 +50,11 @@
     "type_traits": "cpp",
     "typeinfo": "cpp",
     "map": "cpp",
-    "cstddef": "cpp"
+    "cstddef": "cpp",
+    "ctime": "cpp",
+    "list": "cpp",
+    "iomanip": "cpp",
+    "unistd.h": "c"
   },
   "astyle.additional_languages": [
     ".cpp"

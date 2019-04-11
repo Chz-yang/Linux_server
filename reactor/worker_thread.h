@@ -2,25 +2,18 @@
 #define WORKER_THREAD_H
 
 #include "base_worker_thread.h"
-
-template <class T>
-struct Argv {
-    int listenfd;
-    T* this;
-};
+#include "reactor.h"
 
 class WorkerThread : public BaseWorkerThread {
 public:
-    WorkerThread();
-    ~WorkerThread();
+    WorkerThread() {}
+    ~WorkerThread() {}
 public:
-    static void work(void *argv);
+    static void* work(void *argv);
 private:
-    void write();
-    void read();
-    void newConnect();
+    static void read(int sockfd);
+    static void addNewConnect(Reactor* reactor, int listenfd);
 private:
-    int listenfd_;
 };
 
 #endif
