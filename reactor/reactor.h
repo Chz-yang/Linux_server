@@ -1,18 +1,18 @@
 #ifndef REACTOR_H
 #define REACTOR_H
 
+#include <set>
 #include <pthread.h>
 #include <sys/epoll.h>
+#include <iostream>
 
 class Reactor {
 public:
     Reactor(int thread_num = 0, void* (*event_handler)(void*) = nullptr);
     void registerEvent(int fd, bool is_listenfd = false);
+    void removeEvent(int fd);
     void handlerEvents();
     ~Reactor();
-
-public:
-    static void registerEvent(int fd, Reactor *this_ptr);
 
 private:
     void initChildThreads();
@@ -27,6 +27,7 @@ private:
     int** pipefd_;
     int cur_child_index_;
     void* (*event_handler_)(void*);
+    std::set<int> sockfds_;
 };
 
 #endif

@@ -1,10 +1,9 @@
 #include "reactor.h"
-#include "worker_thread.h"
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <iostream>
 #include <string.h>
+#include <iostream>
 
 const int kMaxThreadNumber = 10;
 const int kMaxEventNumber = 1024;
@@ -14,6 +13,7 @@ Reactor::Reactor(int thread_num, void* (*event_handler)(void*)) {
 
     if (thread_num > kMaxThreadNumber) {
         throw "Thread number is overmuch!";
+
     } else {
         epollfd_ = epoll_create(5);
         thread_num_ = thread_num;
@@ -21,15 +21,21 @@ Reactor::Reactor(int thread_num, void* (*event_handler)(void*)) {
         event_handler_ = event_handler;
         initChildThreads();
     }
-
-    // std::cout << this << std::endl;
 }
 
 Reactor::~Reactor() {
     for (int i = 0; i < thread_num_; ++i) {
         pthread_cancel(child_threads_[i]);
+        close(pipefd_[i][0]);
+        close(pipefd_[i][1]);
         delete []pipefd_[i];
     }
+
+    for (auto sockfd : sockfds_) { // close all sockfds
+        close(sockfd);
+    }
+
+    close(epollfd_); // close epollfd
 
     delete []child_threads_;
     delete []pipefd_;
@@ -68,17 +74,25 @@ void Reactor::registerEvent(int fd, bool is_listenfd) {
     if (is_listenfd) {
         listenfd_ = fd;
         std::string buff = std::to_string(fd);
-        for (int i = 0; i < thread_num_; ++i) {
+        for (int i = 0; i < thread_num_; ++i) { // send listenfd to all children
             write(pipefd_[i][1], buff.c_str(), buff.length());
         }
+    } else {
+        sockfds_.insert(fd);
     }
 
     setnonblocking(fd);
 }
 
-void Reactor::dispatch(const epoll_event& event) {
-    // std::cout << "dispath to " << cur_child_index_ << std::endl;
+void Reactor::removeEvent(int fd) {
+    epoll_event event;
+    epoll_ctl(epollfd_, EPOLL_CTL_DEL, fd, &event);
 
+    close(fd);
+    sockfds_.erase(fd);
+}
+
+void Reactor::dispatch(const epoll_event& event) {
     std::string buff = std::to_string(event.data.fd);
     write(pipefd_[cur_child_index_][1], buff.c_str(), buff.length());
 
@@ -96,7 +110,7 @@ void Reactor::handlerEvents() {
     epoll_event events[kMaxEventNumber];
     registerEvent(listenfd_);
 
-    while(true){
+    while(true) {
         int ret = epoll_wait(epollfd_, events, kMaxEventNumber, -1);
         if (ret < 0) {
             std::cout << "epoll failure" << std::endl;
@@ -107,8 +121,4 @@ void Reactor::handlerEvents() {
             dispatch(events[i]);
         }
     }
-}
-
-void Reactor::registerEvent(int fd, Reactor *this_ptr) {
-    this_ptr->registerEvent(fd, false);
 }

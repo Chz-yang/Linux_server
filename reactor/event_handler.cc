@@ -1,4 +1,4 @@
-#include "worker_thread.h"
+#include "event_handler.h"
 #include "reactor.h"
 
 #include <sys/socket.h>
@@ -11,21 +11,20 @@
 
 typedef std::pair<int, Reactor*> Argv;
 
-void* WorkerThread::work(void *argv) {
+void* EventHandler::handlerEvent(void *argv) {
     int pipefd = ((Argv*)argv)->first;
     Reactor* reactor = ((Argv*)argv)->second;
     int listenfd;
 
     char buff[256];
+    memset(buff, '\0', 256);
+
     int ret = ::read(pipefd, buff, 256);
     listenfd = atoi(buff);
 
     while(true) {
-        // std::cout << "listenfd = " << listenfd << " "
-        //             << "pipefd = " << pipefd << " " << std::endl;
+        memset(buff, '\0', 256);
         ret = ::read(pipefd, buff, 256);
-
-        // std::cout << "new fd = " << buff << std::endl;
 
         if (ret < 0) {
             std::cout << "Read failure!" << std::endl;
@@ -38,10 +37,10 @@ void* WorkerThread::work(void *argv) {
         } else {
             int fd = atoi(buff);
 
-            if (fd == listenfd) { // new connect
-                WorkerThread::addNewConnect(reactor, listenfd);
+            if (fd == listenfd) { // new connection
+                EventHandler::connectRequest(listenfd, reactor);
             } else {
-                WorkerThread::read(fd);
+                EventHandler::sendRequest(fd, reactor);
             }
         }
     }
@@ -49,22 +48,20 @@ void* WorkerThread::work(void *argv) {
     return nullptr;
 }
 
-void WorkerThread::addNewConnect(Reactor* reactor, int listenfd) {
+void EventHandler::connectRequest(int listenfd, Reactor* reactor) {
     sockaddr addr;
     socklen_t addr_len;
     int fd = ::accept(listenfd, &addr, &addr_len);
 
     if (fd == -1) {
-        std::cout << "Accept new connecting failure" << std::endl;
+        std::cout << "Accept new connection failure" << std::endl;
     } else {
-        // std::cout << "Accept new connecting fd: " << fd << std::endl;
         reactor->registerEvent(fd, false);
-        // Reactor::registerEvent(fd, reactor);
     }
 }
 
-void WorkerThread::read(int sockfd) {
-    char buff[256];
+void EventHandler::sendRequest(int sockfd, Reactor *reactor) {
+    static char buff[256];
     memset(buff, '\0', 256);
     buff[0] = '[';
 
@@ -74,7 +71,11 @@ void WorkerThread::read(int sockfd) {
     buff[strlen(time_str)] = ']';
     buff[strlen(time_str) + 1] = ' ';
 
-    ::read(sockfd, buff + strlen(buff), 256);
+    int ret = ::read(sockfd, buff + strlen(buff), 256);
+    if (ret == 0) { // the sockfd is closed remotely
+        reactor->removeEvent(sockfd);
+        return;
+    }
 
     std::cout << "send back " << buff << std::endl;
 

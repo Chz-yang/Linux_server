@@ -1,8 +1,9 @@
-#include "worker_thread.h"
 #include "reactor.h"
+#include "event_handler.h"
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 #include <iostream>
 
 int main(int argc, char *argv[]) {
@@ -20,17 +21,26 @@ int main(int argc, char *argv[]) {
     address.sin_port = htons(port);
 
     int sock = socket(PF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        std::cout << "Create socket failure" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     int reuse = 1;
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
     bind(sock, (sockaddr*)&address, sizeof(address));
 
-    listen(sock, 5);
+    if(listen(sock, 5) < 0) {
+        std::cout << "Listen socket failure" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
-    Reactor reactor(2, &WorkerThread::work);
+    Reactor reactor(10, &EventHandler::handlerEvent);
     reactor.registerEvent(sock, true);
     reactor.handlerEvents();
+
+    close(sock);
 
     return 0;
 }
